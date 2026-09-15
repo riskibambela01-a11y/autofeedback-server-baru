@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
       ok: false,
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   try {
     const data = req.body || {};
 
-    // Cek secret key
+    // Cek key
     if (data.key !== process.env.FEEDBACK_KEY) {
       return res.status(401).json({
         ok: false,
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Pastikan foto tersedia
+    // Cek foto
     if (!data.photoBase64) {
       return res.status(400).json({
         ok: false,
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Hapus prefix data:image/... jika ada
+    // Bersihkan prefix Base64 jika ada
     const base64 = data.photoBase64.replace(
       /^data:image\/\w+;base64,/,
       ""
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
 
     // Caption Telegram
     const caption =
-      "🤖 AUTO FEEDBACK VIP BAN\n\n" +
+      "🤖 AUTO FEEDBACK VIP\n\n" +
       "👤 Player: " + (data.playerName || "-") + "\n" +
       "🆔 UID: " + (data.uid || "-") + "\n" +
       "🎯 Kills: " + (data.kills ?? "-") + "\n" +
@@ -56,6 +56,7 @@ export default async function handler(req, res) {
 
     form.append("chat_id", chatId);
     form.append("caption", caption);
+
     form.append(
       "photo",
       new Blob([imageBuffer], {
@@ -64,6 +65,7 @@ export default async function handler(req, res) {
       data.photoFilename || "win.jpg"
     );
 
+    // Kirim ke Telegram
     const telegramResponse = await fetch(
       `https://api.telegram.org/bot${botToken}/sendPhoto`,
       {
@@ -78,16 +80,12 @@ export default async function handler(req, res) {
       console.error("Telegram error:", telegramData);
 
       return res.status(500).json({
-     ok: false,
-     msg: "Telegram send failed"
-   });
+        ok: false,
+        msg: "Telegram send failed"
+      });
+    }
 
-    console.log("AutoFeedback sent to Telegram", {
-      kills: data.kills,
-      rank: data.rank,
-      uid: data.uid,
-      playerName: data.playerName
-    });
+    console.log("AutoFeedback sent to Telegram");
 
     return res.status(200).json({
       ok: true,
@@ -102,4 +100,4 @@ export default async function handler(req, res) {
       msg: "Server error"
     });
   }
-}
+};
