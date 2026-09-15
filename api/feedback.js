@@ -77,11 +77,11 @@ export default async function handler(req, res) {
     if (!telegramResponse.ok || !telegramData.ok) {
       console.error("Telegram error:", telegramData);
 
-      return res.status(500).json({
-        ok: false,
-        msg: "Telegram send failed"
-      });
-    }
+      return res.status(502).json({
+  ok: false,
+  msg: "Telegram send failed",
+  error: telegramData.description || "Unknown Telegram error"
+});
 
     console.log("AutoFeedback sent to Telegram", {
       kills: data.kills,
