@@ -1,96 +1,127 @@
-module.exports = async function handler(req, res) {
+function htmlEscape(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function validSecret(received, expected) {
+  if (!received || !expected || typeof received !== "string" || typeof expected !== "string") {
+    return false;
+  }
+  // Constant-time comparison when lengths match.
+  const a = Buffer.from(received);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return require("node:crypto").timingSafeEqual(a, b);
+}
+
+function json(res, status, body) {
+  res.status(status).setHeader("Content-Type", "application/json");
+  return res.end(JSON.stringify(body));
+}
+
+export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({
+    res.setHeader("Allow", "POST");
+    return json(res, 405, { ok: false, error: "method_not_allowed" });
+  }
+
+  const expectedKey = process.env.AFB_SECRET_KEY;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!expectedKey || !botToken || !chatId) {
+    return json(res, 500, {
       ok: false,
-      msg: "Method Not Allowed"
+      error: "server_not_configured"
     });
   }
 
+  let data;
   try {
-    const data = req.body || {};
+    data = typeof req.body === "object" ? req.body : JSON.parse(req.body || "{}");
+  } catch {
+    return json(res, 400, { ok: false, error: "invalid_json" });
+  }
 
-    if (data.key !== process.env.FEEDBACK_KEY) {
-      return res.status(401).json({
-        ok: false,
-        msg: "Invalid key"
-      });
+  if (!validSecret(data.key, expectedKey)) {
+    return json(res, 401, { ok: false, error: "invalid_key" });
+  }
+
+  const required = ["uid", "playerName", "kills", "rank", "time", "photoBase64"];
+  for (const field of required) {
+    if (typeof data[field] !== "string" || !data[field].trim()) {
+      return json(res, 400, { ok: false, error: `missing_${field}` });
     }
+  }
 
-    if (!data.photoBase64) {
-      return res.status(400).json({
-        ok: false,
-        msg: "Photo missing"
-      });
-    }
+  // Basic protection against accidentally sending non-JPEG/non-image data.
+  const rawBase64 = data.photoBase64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "");
+  let image;
+  try {
+    image = Buffer.from(rawBase64, "base64");
+  } catch {
+    return json(res, 400, { ok: false, error: "invalid_photo" });
+  }
 
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+  // Keep requests practical for serverless deployments.
+  if (image.length < 500 || image.length > 3_500_000) {
+    return json(res, 413, { ok: false, error: "photo_too_large_or_empty" });
+  }
 
-    if (!botToken || !chatId) {
-      return res.status(500).json({
-        ok: false,
-        msg: "Telegram configuration missing"
-      });
-    }
+  // Mask nickname and UID before sending to Telegram.
+  const maskedNickname = "******";
+  const uid = String(data.uid);
+  const maskedUid =
+    uid.length > 5
+      ? uid.slice(0, 3) + "*".repeat(Math.max(0, uid.length - 5)) + uid.slice(-2)
+      : "*".repeat(uid.length);
 
-    const base64 = data.photoBase64.replace(
-      /^data:image\/\w+;base64,/,
-      ""
+  const caption =
+    "🏆 <b>PAK LUA VIP B A N </b> 🏆\n" +
+    "🔥 <b>AUTO FEEDBACK</b> 🔥\n" +
+    "⏰ Time: " + htmlEscape(data.time) + "\n" +
+    "👤 Nickname: " + htmlEscape(maskedNickname) + "\n" +
+    "🔑 UID: " + htmlEscape(maskedUid) + "\n" +
+    "🔫 Count Kill: " + htmlEscape(data.kills) + "\n" +
+    "🏅 Rank: " + htmlEscape(data.rank);
+
+  const form = new FormData();
+  form.append("chat_id", chatId);
+  form.append("caption", caption);
+  form.append("parse_mode", "HTML");
+  form.append(
+    "photo",
+    new Blob([image], { type: data.photoMimeType || "image/jpeg" }),
+    data.photoFilename || "win.jpg"
+  );
+
+  let telegramResponse;
+  try {
+    telegramResponse = await fetch(
+      `https://api.telegram.org/bot${encodeURIComponent(botToken)}/sendPhoto`,
+      { method: "POST", body: form }
     );
+  } catch {
+    return json(res, 502, { ok: false, error: "telegram_network_error" });
+  }
 
-    const imageBuffer = Buffer.from(base64, "base64");
+  let telegramData = {};
+  try {
+    telegramData = await telegramResponse.json();
+  } catch {}
 
-    const caption =
-      "🤖 AUTO FEEDBACK\n\n" +
-      "👤 Player: " + (data.playerName || "-") + "\n" +
-      "🆔 UID: " + (data.uid || "-") + "\n" +
-      "🎯 Kills: " + (data.kills ?? "-") + "\n" +
-      "🏆 Rank: " + (data.rank ?? "-") + "\n" +
-      "🕒 Time: " + (data.time || "-");
-
-    const form = new FormData();
-
-    form.append("chat_id", chatId);
-    form.append("caption", caption);
-    form.append(
-      "photo",
-      new Blob([imageBuffer], {
-        type: data.photoMimeType || "image/jpeg"
-      }),
-      data.photoFilename || "win.jpg"
-    );
-
-    const telegramResponse = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendPhoto`,
-      {
-        method: "POST",
-        body: form
-      }
-    );
-
-    const telegramData = await telegramResponse.json();
-
-    if (!telegramResponse.ok || !telegramData.ok) {
-      console.error("Telegram error:", telegramData);
-
-      return res.status(502).json({
-        ok: false,
-        msg: "Telegram send failed",
-        error: telegramData.description || "Unknown Telegram error"
-      });
-    }
-
-    return res.status(200).json({
-      ok: true,
-      msg: "Feedback sent"
-    });
-
-  } catch (error) {
-    console.error("Server error:", error);
-
-    return res.status(500).json({
+  if (!telegramResponse.ok || !telegramData.ok) {
+    return json(res, 502, {
       ok: false,
-      msg: "Server error"
+      error: "telegram_error"
     });
   }
-};
+
+  return json(res, 200, {
+    ok: true,
+    message_id: telegramData.result?.message_id ?? null
+  });
+}
