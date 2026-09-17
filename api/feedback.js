@@ -89,7 +89,7 @@ export default async function handler(req, res) {
     "🔑 UID: " + htmlEscape(maskedUid) + "\n" +
     "🔫 Count Kill: " + htmlEscape(data.kills) + "\n" +
     "🏅 Rank: " + htmlEscape(data.rank) + "\n\n" +
-    "⚡ 𓆩 VIP LUA 𓆪 ⚡";
+    "```⚡ 𓆩 VIP LUA 𓆪 ⚡```";
 
   const form = new FormData();
   form.append("chat_id", chatId);
