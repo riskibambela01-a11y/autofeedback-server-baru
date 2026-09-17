@@ -72,10 +72,12 @@ export default async function handler(req, res) {
   }
 
   // Mask identity in the Telegram caption.
-  const maskedNickname = "**";
-  const uid = String(data.uid);
-  const maskedUid =
-    uid.length > 5 ? uid.slice(0, 3) + "**" + uid.slice(-2) : "*".repeat(uid.length);
+const maskedNickname = "******";
+const uid = String(data.uid);
+const maskedUid =
+  uid.length > 5
+    ? uid.slice(0, 3) + "*".repeat(uid.length - 5) + uid.slice(-2)
+    : "*".repeat(uid.length);
 
   const caption =
     "╔═══━━━─── • ───━━━═══╗\n" +
