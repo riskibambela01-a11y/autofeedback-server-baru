@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     "   𓆩 🏆 𓆪 ◀ B A N  ▶ 𓆩 🏆 𓆪 \n" +
     "       𖤐 AUTO FEEDBACK 𖤐    \n" +
     "╚═══━━━─── • ───━━━═══╝\n" +
-    "🏆 PAK LUA VIP B A N  🏆\n" +
+    "🏆 PAK LUA VIP MOD BAN  🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
     "⏱ Time: " + htmlEscape(data.time) + "\n" +
     "👤 Nickname: " + htmlEscape(maskedNickname) + "\n" +
