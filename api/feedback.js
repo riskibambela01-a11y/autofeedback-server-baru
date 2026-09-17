@@ -79,8 +79,8 @@ export default async function handler(req, res) {
 
   const caption =
     "╔═══━━━─── • ───━━━═══╗\n" +
-    " 𓆩 🏆 𓆪 ◀ B A N  ▶ 𓆩 🏆 𓆪 \n" +
-    "     𖤐 AUTO FEEDBACK 𖤐    \n" +
+    "   𓆩 🏆 𓆪 ◀ B A N  ▶ 𓆩 🏆 𓆪 \n" +
+    "       𖤐 AUTO FEEDBACK 𖤐    \n" +
     "╚═══━━━─── • ───━━━═══╝\n" +
     "🏆 PAK LUA VIP B A N  🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
