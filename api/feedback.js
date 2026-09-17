@@ -71,22 +71,25 @@ export default async function handler(req, res) {
     return json(res, 413, { ok: false, error: "photo_too_large_or_empty" });
   }
 
-  // Mask nickname and UID before sending to Telegram.
-  const maskedNickname = "******";
+  // Mask identity in the Telegram caption.
+  const maskedNickname = "**";
   const uid = String(data.uid);
   const maskedUid =
-    uid.length > 5
-      ? uid.slice(0, 3) + "*".repeat(Math.max(0, uid.length - 5)) + uid.slice(-2)
-      : "*".repeat(uid.length);
+    uid.length > 5 ? uid.slice(0, 3) + "**" + uid.slice(-2) : "*".repeat(uid.length);
 
   const caption =
-    "🏆 <b>PAK LUA VIP B A N </b> 🏆\n" +
-    "🔥 <b>AUTO FEEDBACK</b> 🔥\n" +
-    "⏰ Time: " + htmlEscape(data.time) + "\n" +
+    "╔═══━━━─── • ───━━━═══╗\n" +
+    " 𓆩 🏆 𓆪 ◀ B A N  ▶ 𓆩 🏆 𓆪 \n" +
+    "     𖤐 AUTO FEEDBACK 𖤐    \n" +
+    "╚═══━━━─── • ───━━━═══╝\n" +
+    "🏆 PAK LUA VIP B A N  🏆\n" +
+    "🔥 AUTO FEEDBACK 🔥\n" +
+    "⏱ Time: " + htmlEscape(data.time) + "\n" +
     "👤 Nickname: " + htmlEscape(maskedNickname) + "\n" +
     "🔑 UID: " + htmlEscape(maskedUid) + "\n" +
     "🔫 Count Kill: " + htmlEscape(data.kills) + "\n" +
-    "🏅 Rank: " + htmlEscape(data.rank);
+    "🏅 Rank: " + htmlEscape(data.rank) + "\n\n" +
+    "⚡ 𓆩 VIP LUA 𓆪 ⚡";
 
   const form = new FormData();
   form.append("chat_id", chatId);
