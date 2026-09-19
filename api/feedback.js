@@ -16,7 +16,6 @@ function validSecret(received, expected) {
     return false;
   }
 
-  // Constant-time comparison when lengths match.
   const a = Buffer.from(received);
   const b = Buffer.from(expected);
 
@@ -30,7 +29,57 @@ function json(res, status, body) {
   return res.end(JSON.stringify(body));
 }
 
+// ==============================
+// MASK NICKNAME
+// 3 huruf awal + bintang + 3 huruf akhir
+// ==============================
+function maskNickname(value) {
+  const nickname = String(value ?? "")
+    .replace(/[\r\n\t]/g, "")
+    .trim();
+
+  if (!nickname) {
+    return "******";
+  }
+
+  // Jika 6 karakter atau kurang, sembunyikan semuanya.
+  if (nickname.length <= 6) {
+    return "*".repeat(nickname.length);
+  }
+
+  const first = nickname.slice(0, 3);
+  const last = nickname.slice(-3);
+  const middle = "*".repeat(nickname.length - 6);
+
+  return first + middle + last;
+}
+
+// ==============================
+// MASK UID
+// 3 angka awal + bintang + 2 angka akhir
+// ==============================
+function maskUid(value) {
+  const uid = String(value ?? "").trim();
+
+  if (!uid) {
+    return "******";
+  }
+
+  if (uid.length <= 5) {
+    return "*".repeat(uid.length);
+  }
+
+  return (
+    uid.slice(0, 3) +
+    "*".repeat(uid.length - 5) +
+    uid.slice(-2)
+  );
+}
+
 export default async function handler(req, res) {
+  // ==============================
+  // METHOD
+  // ==============================
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
 
@@ -40,6 +89,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ==============================
+  // ENV
+  // ==============================
   const expectedKey = process.env.AFB_SECRET_KEY;
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -51,6 +103,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ==============================
+  // JSON BODY
+  // ==============================
   let data;
 
   try {
@@ -65,6 +120,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ==============================
+  // SECRET KEY
+  // ==============================
   if (!validSecret(data.key, expectedKey)) {
     return json(res, 401, {
       ok: false,
@@ -72,6 +130,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ==============================
+  // REQUIRED DATA
+  // ==============================
   const required = [
     "uid",
     "playerName",
@@ -93,7 +154,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // Basic protection against accidentally sending non-image data.
+  // ==============================
+  // PHOTO
+  // ==============================
   const rawBase64 = data.photoBase64.replace(
     /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
     ""
@@ -110,76 +173,47 @@ export default async function handler(req, res) {
     });
   }
 
-  // Keep requests practical for serverless deployments.
-  if (image.length < 500 || image.length > 3_500_000) {
+  if (image.length < 500 || image.length > 3500000) {
     return json(res, 413, {
       ok: false,
       error: "photo_too_large_or_empty"
     });
   }
 
-  // ==========================================
-  // MASK IDENTITY
-  // ==========================================
+  // ==============================
+  // MASK DATA
+  // ==============================
+  const maskedNickname = maskNickname(data.playerName);
+  const maskedUid = maskUid(data.uid);
 
-  // Nickname selalu menjadi 6 tanda bintang.
-  const maskedNickname = "******";
-
-  // UID:
-  // 3 angka awal tetap terlihat
-  // bagian tengah menjadi *
-  // 2 angka terakhir tetap terlihat
-  //
-  // Contoh:
-  // 52512345687
-  // menjadi:
-  // 525******87
-
-  const uid = String(data.uid);
-
-  const maskedUid =
-    uid.length > 5
-      ? uid.slice(0, 3) +
-        "*".repeat(uid.length - 5) +
-        uid.slice(-2)
-      : "*".repeat(uid.length);
-
-  // ==========================================
+  // ==============================
   // PUBG VERSION
-  // ==========================================
-
-  // Dikirim dari Lua.
-  // Jika belum dikirim oleh Lua lama, tampilkan
-  // "Tidak diketahui" agar AutoFeedback tetap bekerja.
+  // ==============================
   const pubgVersion =
-    typeof data.pubgVersion === "string" &&
-    data.pubgVersion.trim()
-      ? data.pubgVersion.trim()
-      : "Tidak diketahui";
+    String(data.pubgVersion || "").trim() || "Tidak diketahui";
 
-  // ==========================================
+  // ==============================
   // TELEGRAM CAPTION
-  // ==========================================
-
+  // ==============================
   const caption =
     "╔═══━━━─── • ───━━━═══╗\n" +
-    "   𓆩 🏆 𓆪 ◀ B A N  ▶ 𓆩 🏆 𓆪 \n" +
-    "       𖤐 AUTO FEEDBACK 𖤐    \n" +
+    "   𓆩 🏆 𓆪 ◀ B A N ▶ 𓆩 🏆 𓆪\n" +
+    "       𖤐 AUTO FEEDBACK 𖤐\n" +
     "╚═══━━━─── • ───━━━═══╝\n" +
-    "🏆 PAK LUA VIP MOD BAN  🏆\n" +
+    "🏆 PAK LUA VIP MOD BAN 🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
     "⏱ Time: " + htmlEscape(data.time) + "\n" +
     "🎮 PUBG: " + htmlEscape(pubgVersion) + "\n" +
+    "🧪 Bahan: AUTOFEEDBACK V4\n" +
     "👤 Nickname: " + htmlEscape(maskedNickname) + "\n" +
     "🔑 UID: " + htmlEscape(maskedUid) + "\n" +
     "🔫 Count Kill: " + htmlEscape(data.kills) + "\n" +
     "🏅 Rank: " + htmlEscape(data.rank) + "\n\n" +
     "⚡ 𓆩 VIP LUA 𓆪 ⚡";
 
-  // ==========================================
-  // SEND PHOTO TO TELEGRAM
-  // ==========================================
-
+  // ==============================
+  // TELEGRAM FORM
+  // ==============================
   const form = new FormData();
 
   form.append("chat_id", chatId);
@@ -197,6 +231,9 @@ export default async function handler(req, res) {
     data.photoFilename || "win.jpg"
   );
 
+  // ==============================
+  // SEND TELEGRAM
+  // ==============================
   let telegramResponse;
 
   try {
@@ -214,6 +251,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ==============================
+  // TELEGRAM RESPONSE
+  // ==============================
   let telegramData = {};
 
   try {
@@ -227,6 +267,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ==============================
+  // SUCCESS
+  // ==============================
   return json(res, 200, {
     ok: true,
     message_id:
