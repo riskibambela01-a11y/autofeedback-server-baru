@@ -19,45 +19,50 @@ function validSecret(received, expected) {
   const a = Buffer.from(received);
   const b = Buffer.from(expected);
 
-  if (a.length !== b.length) return false;
+  if (a.length !== b.length) {
+    return false;
+  }
 
   return require("node:crypto").timingSafeEqual(a, b);
 }
 
 function json(res, status, body) {
-  res.status(status).setHeader("Content-Type", "application/json");
+  res.status(status).setHeader(
+    "Content-Type",
+    "application/json"
+  );
+
   return res.end(JSON.stringify(body));
 }
 
-// ==============================
+// ========================================
 // MASK NICKNAME
-// 3 huruf awal + bintang + 3 huruf akhir
-// ==============================
+// 3 HURUF AWAL + 7 BINTANG + 1 HURUF AKHIR
+// ========================================
 function maskNickname(value) {
   const nickname = String(value ?? "")
     .replace(/[\r\n\t]/g, "")
     .trim();
 
   if (!nickname) {
-    return "******";
+    return "***********";
   }
 
-  // Jika 6 karakter atau kurang, sembunyikan semuanya.
-  if (nickname.length <= 6) {
-    return "*".repeat(nickname.length);
+  if (nickname.length <= 4) {
+    return nickname + "*******";
   }
 
-  const first = nickname.slice(0, 3);
-  const last = nickname.slice(-3);
-  const middle = "*".repeat(nickname.length - 6);
-
-  return first + middle + last;
+  return (
+    nickname.slice(0, 3) +
+    "*******" +
+    nickname.slice(-1)
+  );
 }
 
-// ==============================
+// ========================================
 // MASK UID
-// 3 angka awal + bintang + 2 angka akhir
-// ==============================
+// 3 DIGIT AWAL + BINTANG + 2 DIGIT AKHIR
+// ========================================
 function maskUid(value) {
   const uid = String(value ?? "").trim();
 
@@ -77,9 +82,10 @@ function maskUid(value) {
 }
 
 export default async function handler(req, res) {
-  // ==============================
+
+  // ========================================
   // METHOD
-  // ==============================
+  // ========================================
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
 
@@ -89,9 +95,9 @@ export default async function handler(req, res) {
     });
   }
 
-  // ==============================
-  // ENV
-  // ==============================
+  // ========================================
+  // ENVIRONMENT
+  // ========================================
   const expectedKey = process.env.AFB_SECRET_KEY;
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -103,9 +109,9 @@ export default async function handler(req, res) {
     });
   }
 
-  // ==============================
-  // JSON BODY
-  // ==============================
+  // ========================================
+  // READ JSON BODY
+  // ========================================
   let data;
 
   try {
@@ -120,9 +126,9 @@ export default async function handler(req, res) {
     });
   }
 
-  // ==============================
-  // SECRET KEY
-  // ==============================
+  // ========================================
+  // CHECK SECRET KEY
+  // ========================================
   if (!validSecret(data.key, expectedKey)) {
     return json(res, 401, {
       ok: false,
@@ -130,9 +136,9 @@ export default async function handler(req, res) {
     });
   }
 
-  // ==============================
+  // ========================================
   // REQUIRED DATA
-  // ==============================
+  // ========================================
   const required = [
     "uid",
     "playerName",
@@ -154,9 +160,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // ==============================
-  // PHOTO
-  // ==============================
+  // ========================================
+  // PHOTO BASE64
+  // ========================================
   const rawBase64 = data.photoBase64.replace(
     /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
     ""
@@ -173,6 +179,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ========================================
+  // PHOTO SIZE LIMIT
+  // ========================================
   if (image.length < 500 || image.length > 3500000) {
     return json(res, 413, {
       ok: false,
@@ -180,21 +189,22 @@ export default async function handler(req, res) {
     });
   }
 
-  // ==============================
+  // ========================================
   // MASK DATA
-  // ==============================
+  // ========================================
   const maskedNickname = maskNickname(data.playerName);
   const maskedUid = maskUid(data.uid);
 
-  // ==============================
+  // ========================================
   // PUBG VERSION
-  // ==============================
+  // ========================================
   const pubgVersion =
-    String(data.pubgVersion || "").trim() || "Tidak diketahui";
+    String(data.pubgVersion || "").trim() ||
+    "Tidak diketahui";
 
-  // ==============================
+  // ========================================
   // TELEGRAM CAPTION
-  // ==============================
+  // ========================================
   const caption =
     "╔═══━━━─── • ───━━━═══╗\n" +
     "   𓆩 🏆 𓆪 ◀ B A N ▶ 𓆩 🏆 𓆪\n" +
@@ -202,18 +212,30 @@ export default async function handler(req, res) {
     "╚═══━━━─── • ───━━━═══╝\n" +
     "🏆 PAK LUA VIP MOD BAN 🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
-    "⏱ Time: " + htmlEscape(data.time) + "\n" +
-    "🎮 PUBG: " + htmlEscape(pubgVersion) + "\n" +
+    "⏱ Time: " +
+    htmlEscape(data.time) +
+    "\n" +
+    "🎮 PUBG: " +
+    htmlEscape(pubgVersion) +
+    "\n" +
     "🧪 Bahan: AUTOFEEDBACK V4\n" +
-    "👤 Nickname: " + htmlEscape(maskedNickname) + "\n" +
-    "🔑 UID: " + htmlEscape(maskedUid) + "\n" +
-    "🔫 Count Kill: " + htmlEscape(data.kills) + "\n" +
-    "🏅 Rank: " + htmlEscape(data.rank) + "\n\n" +
-    "⚡ 𓆩 VIP LUA 𓆪 ⚡";
+    "👤 Nickname: " +
+    htmlEscape(maskedNickname) +
+    "\n" +
+    "🔑 UID: " +
+    htmlEscape(maskedUid) +
+    "\n" +
+    "🔫 Count Kill: " +
+    htmlEscape(data.kills) +
+    "\n" +
+    "🏅 Rank: " +
+    htmlEscape(data.rank) +
+    "\n\n" +
+    "👑 Owner: @riskibambela";
 
-  // ==============================
+  // ========================================
   // TELEGRAM FORM
-  // ==============================
+  // ========================================
   const form = new FormData();
 
   form.append("chat_id", chatId);
@@ -231,9 +253,9 @@ export default async function handler(req, res) {
     data.photoFilename || "win.jpg"
   );
 
-  // ==============================
-  // SEND TELEGRAM
-  // ==============================
+  // ========================================
+  // SEND PHOTO TO TELEGRAM
+  // ========================================
   let telegramResponse;
 
   try {
@@ -251,25 +273,28 @@ export default async function handler(req, res) {
     });
   }
 
-  // ==============================
+  // ========================================
   // TELEGRAM RESPONSE
-  // ==============================
+  // ========================================
   let telegramData = {};
 
   try {
     telegramData = await telegramResponse.json();
   } catch {}
 
-  if (!telegramResponse.ok || !telegramData.ok) {
+  if (
+    !telegramResponse.ok ||
+    !telegramData.ok
+  ) {
     return json(res, 502, {
       ok: false,
       error: "telegram_error"
     });
   }
 
-  // ==============================
+  // ========================================
   // SUCCESS
-  // ==============================
+  // ========================================
   return json(res, 200, {
     ok: true,
     message_id:
