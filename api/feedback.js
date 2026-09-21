@@ -218,7 +218,7 @@ export default async function handler(req, res) {
     "🎮 PUBG: " +
     htmlEscape(pubgVersion) +
     "\n" +
-    "🧪 Bahan: AUTOFEEDBACK V5\n" +
+    "🧪 Bahan: AUTOFEEDBACK V6\n" +
     "👤 Nickname: " +
     htmlEscape(maskedNickname) +
     "\n" +
