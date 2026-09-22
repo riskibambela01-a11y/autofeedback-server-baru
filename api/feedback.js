@@ -234,7 +234,7 @@ export default async function handler(req, res) {
     "\n" +
     htmlEscape(pubgDisplay) +
     "\n" +
-    "🧪 Bahan: AUTOFEEDBACK V6\n" +
+    "🧪 Bahan: AUTOFEEDBACK V7\n" +
     "👤 Nickname: " +
     htmlEscape(maskedNickname) +
     "\n" +
