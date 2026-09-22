@@ -217,7 +217,7 @@ export default async function handler(req, res) {
   }
 
   const pubgDisplay =
-    pubgRegionIcon(pubgVersion) + " PUBG: " + pubgVersion;
+    "PUBG : " + pubgRegionIcon(pubgVersion) + " " + pubgVersion;
 
   // ========================================
   // TELEGRAM CAPTION
