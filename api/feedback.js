@@ -217,24 +217,21 @@ export default async function handler(req, res) {
   }
 
   const pubgDisplay =
-    "PUBG : " + pubgRegionIcon(pubgVersion) + " " + pubgVersion;
+    pubgRegionIcon(pubgVersion) + " " + pubgVersion;
 
   // ========================================
   // TELEGRAM CAPTION
   // ========================================
   const caption =
     "╔═══━━━─── • ───━━━═══╗\n" +
-    "   𓆩 🏆 𓆪 ◀ B A N ▶ 𓆩 🏆 𓆪\n" +
-    "       𖤐 AUTO FEEDBACK 𖤐\n" +
+    "      𓆩 🏆 𓆪 ◀ B A N ▶ 𓆩 🏆 𓆪\n" +
+    "        𖤐 AUTO FEEDBACK 𖤐\n" +
     "╚═══━━━─── • ───━━━═══╝\n" +
     "🏆 PAK LUA VIP MOD BAN 🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
-    "⏱ Time: " +
-    htmlEscape(data.time) +
-    "\n" +
+    "🧪 Bahan: AUTOFEEDBACK V7\n" +
     htmlEscape(pubgDisplay) +
     "\n" +
-    "🧪 Bahan: AUTOFEEDBACK V7\n" +
     "👤 Nickname: " +
     htmlEscape(maskedNickname) +
     "\n" +
@@ -246,6 +243,9 @@ export default async function handler(req, res) {
     "\n" +
     "🏅 Rank: " +
     htmlEscape(data.rank) +
+    "\n" +
+    "⏱ Time: " +
+    htmlEscape(data.time) +
     "\n\n" +
     "👑 Owner: @riskibambela";
 
