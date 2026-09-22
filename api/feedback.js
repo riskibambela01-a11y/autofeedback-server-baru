@@ -202,6 +202,23 @@ export default async function handler(req, res) {
     String(data.pubgVersion || "").trim() ||
     "Tidak diketahui";
 
+  // Ikon/flag berdasarkan region yang sudah dideteksi Lua.
+  // Tidak mengubah hasil deteksi; hanya menambahkan ikon di caption.
+  function pubgRegionIcon(value) {
+    const v = String(value || "").toLowerCase();
+
+    if (v.includes("bgmi") || v.includes("india")) return "🇮🇳";
+    if (v.includes("korea") || v.includes("kr")) return "🇰🇷";
+    if (v.includes("vietnam") || v.includes("vn")) return "🇻🇳";
+    if (v.includes("taiwan") || v.includes("tw")) return "🇹🇼";
+    if (v.includes("global")) return "🌐";
+
+    return "🎮";
+  }
+
+  const pubgDisplay =
+    pubgRegionIcon(pubgVersion) + " PUBG: " + pubgVersion;
+
   // ========================================
   // TELEGRAM CAPTION
   // ========================================
@@ -215,8 +232,7 @@ export default async function handler(req, res) {
     "⏱ Time: " +
     htmlEscape(data.time) +
     "\n" +
-    "🎮 PUBG: " +
-    htmlEscape(pubgVersion) +
+    htmlEscape(pubgDisplay) +
     "\n" +
     "🧪 Bahan: AUTOFEEDBACK V6\n" +
     "👤 Nickname: " +
