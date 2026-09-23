@@ -229,7 +229,7 @@ export default async function handler(req, res) {
     "╚═══━━━─── • ───━━━═══╝\n" +
     "🏆 PAK LUA VIP MOD BAN 🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
-    "🧪 Bahan: AUTOFEEDBACK V7\n" +
+    "🧪 Bahan: AUTOFEEDBACK V8\n" +
     htmlEscape(pubgDisplay) +
     "\n" +
     "👤 Nickname: " +
