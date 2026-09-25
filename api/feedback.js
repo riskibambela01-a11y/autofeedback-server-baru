@@ -202,7 +202,6 @@ export default async function handler(req, res) {
     String(data.pubgVersion || "").trim() ||
     "Tidak diketahui";
 
-  // Arsitektur aplikasi PUBG yang dideteksi Lua.
   const bitness =
     String(data.bitness || "").trim() ||
     "Tidak diketahui";
@@ -234,7 +233,8 @@ export default async function handler(req, res) {
     "╚═══━━━─── • ───━━━═══╝\n" +
     "🏆 PAK LUA VIP MOD BAN 🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
-    "🦠 Bahan: AUTOFEEDBACK V10\n" +
+    "🦠 Bahan: AUTOFEEDBACK V9\n" +
+    "PUBG : " +
     htmlEscape(pubgDisplay) +
     "\n" +
     "🎮 Versi: " +
