@@ -202,10 +202,6 @@ export default async function handler(req, res) {
     String(data.pubgVersion || "").trim() ||
     "Tidak diketahui";
 
-  const bitness =
-    String(data.bitness || "").trim() ||
-    "Tidak diketahui";
-
   // Ikon/flag berdasarkan region yang sudah dideteksi Lua.
   // Tidak mengubah hasil deteksi; hanya menambahkan ikon di caption.
   function pubgRegionIcon(value) {
@@ -231,14 +227,10 @@ export default async function handler(req, res) {
     "      𓆩 🏆 𓆪 ◀ B A N ▶ 𓆩 🏆 𓆪\n" +
     "        𖤐 AUTO FEEDBACK 𖤐\n" +
     "╚═══━━━─── • ───━━━═══╝\n" +
-    "🏆 PAK LUA VIP MOD BAN 🏆\n" +
+    "🏆 PUBG MOBILE 🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
     "🦠 Bahan: AUTOFEEDBACK V10\n" +
-    "  " +
     htmlEscape(pubgDisplay) +
-    "\n" +
-    "🎮 Versi: " +
-    htmlEscape(bitness) +
     "\n" +
     "👤 Nickname: " +
     htmlEscape(maskedNickname) +
