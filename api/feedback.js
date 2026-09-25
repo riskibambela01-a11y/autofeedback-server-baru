@@ -234,7 +234,7 @@ export default async function handler(req, res) {
     "🏆 PAK LUA VIP MOD BAN 🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
     "🦠 Bahan: AUTOFEEDBACK V9\n" +
-    "PUBG : " +
+    " : " +
     htmlEscape(pubgDisplay) +
     "\n" +
     "🎮 Versi: " +
