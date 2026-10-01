@@ -227,7 +227,7 @@ export default async function handler(req, res) {
     "      𓆩 🏆 𓆪 ◀ B A N ▶ 𓆩 🏆 𓆪\n" +
     "        𖤐 AUTO FEEDBACK 𖤐\n" +
     "╚═══━━━─── • ───━━━═══╝\n" +
-    "🏆 PUBG MOBILE 🏆\n" +
+    "🏆PUBG GLOBAL🏆\n" +
     "🔥 AUTO FEEDBACK 🔥\n" +
     "🦠 Bahan: AUTOFEEDBACK V12\n" +
     htmlEscape(pubgDisplay) +
@@ -316,4 +316,4 @@ export default async function handler(req, res) {
     message_id:
       telegramData.result?.message_id ?? null
   });
-}
+  }
